@@ -27,7 +27,6 @@ app.post("/api/run", async (req, res) => {
     for (let i = 0; i < testCases.length; i++) {
       const { nums, target, expected } = testCases[i];
 
-      // 🔑 Inject test case BEFORE user code
       const finalCode = `
 nums = ${JSON.stringify(nums)}
 target = ${target}
@@ -77,7 +76,6 @@ ${userCode}
       }
     }
 
-    // ✅ All test cases passed
     return res.json({ status: "correct" });
 
   } catch (err) {
