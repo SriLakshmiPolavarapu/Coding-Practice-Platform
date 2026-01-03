@@ -1,3 +1,15 @@
+import express from "express";
+import cors from "cors";
+import axios from "axios";
+import dotenv from "dotenv";
+
+dotenv.config();
+
+const app = express();
+
+app.use(cors());
+app.use(express.json());
+
 app.post("/api/run", async (req, res) => {
   const userCode = req.body.code;
 
@@ -6,26 +18,15 @@ app.post("/api/run", async (req, res) => {
   }
 
   const testCases = [
-    {
-      nums: [2, 7, 11, 15],
-      target: 9,
-      expected: "[0, 1]"
-    },
-    {
-      nums: [3, 2, 4],
-      target: 6,
-      expected: "[1, 2]"
-    },
-    {
-      nums: [3, 3],
-      target: 6,
-      expected: "[0, 1]"
-    }
+    { nums: [2, 7, 11, 15], target: 9, expected: "[0, 1]" },
+    { nums: [3, 2, 4], target: 6, expected: "[1, 2]" },
+    { nums: [3, 3], target: 6, expected: "[0, 1]" }
   ];
 
   try {
     for (let i = 0; i < testCases.length; i++) {
       const { nums, target, expected } = testCases[i];
+
 
       const finalCode = `
 nums = ${JSON.stringify(nums)}
@@ -39,12 +40,7 @@ ${userCode}
         {
           language: "python",
           stdin: "",
-          files: [
-            {
-              name: "main.py",
-              content: finalCode
-            }
-          ]
+          files: [{ name: "main.py", content: finalCode }]
         },
         {
           headers: {
@@ -79,9 +75,11 @@ ${userCode}
     return res.json({ status: "correct" });
 
   } catch (err) {
-    return res.json({
-      status: "error",
-      error: err.message
-    });
+    return res.json({ status: "error", error: err.message });
   }
+});
+
+app.listen(5000, () => {
+  console.log("Backend running on http://localhost:5000");
+
 });
