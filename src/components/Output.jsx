@@ -7,27 +7,31 @@ export default function Output({ editorRef }) {
   const [loading, setLoading] = useState(false);
 
   const runCode = async () => {
+    if (!editorRef.current) return;
+
     const code = editorRef.current.getValue();
 
     setLoading(true);
     setResult("");
 
     try {
-      const res = await axios.post("http://localhost:5000/api/run", {
-        code,
-      });
+      const res = await axios.post(
+        "http://localhost:5000/api/run",
+        { code },
+        { headers: { "Content-Type": "application/json" } }
+      );
 
       if (res.data.status === "correct") {
-        setResult("✅ Correct Answer");
+        setResult("Correct Answer");
       } else if (res.data.status === "wrong") {
         setResult(
-          `❌ Wrong Answer\nExpected: [0, 1]\nYour Output: ${res.data.output}`
+          `Wrong Answer\nExpected: [0, 1]\nYour Output: ${res.data.output}`
         );
       } else {
-        setResult(`❌ Error:\n${res.data.error}`);
+        setResult(`Error:\n${res.data.error}`);
       }
     } catch (err) {
-      setResult("❌ Failed to connect to backend");
+      setResult("Failed to connect to backend");
     }
 
     setLoading(false);
