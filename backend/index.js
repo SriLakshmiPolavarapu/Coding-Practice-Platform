@@ -5,46 +5,80 @@ app.post("/api/run", async (req, res) => {
     return res.json({ status: "error", error: "No code provided" });
   }
 
+  const testCases = [
+    {
+      nums: [2, 7, 11, 15],
+      target: 9,
+      expected: "[0, 1]"
+    },
+    {
+      nums: [3, 2, 4],
+      target: 6,
+      expected: "[1, 2]"
+    },
+    {
+      nums: [3, 3],
+      target: 6,
+      expected: "[0, 1]"
+    }
+  ];
+
   try {
-    const response = await axios.post(
-      "https://onecompiler-apis.p.rapidapi.com/api/v1/run",
-      {
-        language: "python",
-        stdin: "",
-        files: [
-          {
-            name: "main.py",
-            content: userCode
+    for (let i = 0; i < testCases.length; i++) {
+      const { nums, target, expected } = testCases[i];
+
+      // 🔑 Inject test case BEFORE user code
+      const finalCode = `
+nums = ${JSON.stringify(nums)}
+target = ${target}
+
+${userCode}
+`;
+
+      const response = await axios.post(
+        "https://onecompiler-apis.p.rapidapi.com/api/v1/run",
+        {
+          language: "python",
+          stdin: "",
+          files: [
+            {
+              name: "main.py",
+              content: finalCode
+            }
+          ]
+        },
+        {
+          headers: {
+            "X-RapidAPI-Key": process.env.RAPIDAPI_KEY,
+            "X-RapidAPI-Host": "onecompiler-apis.p.rapidapi.com",
+            "Content-Type": "application/json"
           }
-        ]
-      },
-      {
-        headers: {
-          "X-RapidAPI-Key": process.env.RAPIDAPI_KEY,
-          "X-RapidAPI-Host": "onecompiler-apis.p.rapidapi.com",
-          "Content-Type": "application/json"
         }
+      );
+
+      const stdout = response.data.stdout?.trim();
+      const stderr = response.data.stderr;
+
+      if (stderr) {
+        return res.json({
+          status: "error",
+          testCase: i + 1,
+          error: stderr
+        });
       }
-    );
 
-    const stdout = response.data.stdout?.trim();
-    const stderr = response.data.stderr;
-
-    if (stderr) {
-      return res.json({ status: "error", error: stderr });
+      if (stdout !== expected && stdout !== expected.replace(" ", "")) {
+        return res.json({
+          status: "wrong",
+          testCase: i + 1,
+          expected,
+          got: stdout
+        });
+      }
     }
 
-    // Two Sum expected output
-    const expected = "[0, 1]";
-
-    if (stdout === expected || stdout === "[0,1]") {
-      return res.json({ status: "correct" });
-    }
-
-    return res.json({
-      status: "wrong",
-      output: stdout
-    });
+    // ✅ All test cases passed
+    return res.json({ status: "correct" });
 
   } catch (err) {
     return res.json({
