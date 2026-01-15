@@ -1,8 +1,7 @@
 import axios from "axios";
 
-export async function runCode(code) {
-  const response = await axios.post("http://localhost:5000/api/run", {
-    code,
-  });
-  return response.data;
-}
+const api = axios.create({
+  baseURL: "http://localhost:5001/api"
+});
+
+export default api;

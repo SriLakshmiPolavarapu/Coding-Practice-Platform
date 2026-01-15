@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { Box, Button, Text } from "@chakra-ui/react";
+import { Box, Button } from "@chakra-ui/react";
 import axios from "axios";
 
-export default function Output({ editorRef }) {
-  const [result, setResult] = useState(null);
+export default function Output({ editorRef, questionId, language }) {
+  const [output, setOutput] = useState("");
   const [loading, setLoading] = useState(false);
 
   const runCode = async () => {
@@ -11,28 +11,67 @@ export default function Output({ editorRef }) {
 
     const code = editorRef.current.getValue();
     setLoading(true);
-    setResult(null);
+    setOutput("");
 
     try {
       const res = await axios.post(
-        "http://localhost:5000/api/run",
-        { code },
+        "http://localhost:5001/api/run",
+        { questionId, language, code },
         { headers: { "Content-Type": "application/json" } }
       );
 
-      setResult(res.data);
-    } catch (err) {
-      setResult({
-        status: "error",
-        error: "Failed to connect to backend",
-      });
+      const stdout = res.data?.stdout || "";
+      const stderr = res.data?.stderr || "";
+
+      if (stderr && !stdout) {
+        setOutput(stderr);
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const parsed = JSON.parse(stdout);
+
+        if (parsed.status === "ACCEPTED") {
+          let text = `All ${parsed.results.length} test cases passed\n\n`;
+          parsed.results.forEach((tc) => {
+            text += `Test Case ${tc.testCase}: Passed\n`;
+            Object.entries(tc.input).forEach(([k, v]) => {
+              text += `${k} = ${JSON.stringify(v)}\n`;
+            });
+            text += `Expected = ${JSON.stringify(tc.expected)}\n\n`;
+          });
+          setOutput(text);
+        }
+
+        if (parsed.status === "WRONG_ANSWER") {
+          let text = "Wrong Answer\n\n";
+          parsed.results.forEach((tc) => {
+            text += `Test Case ${tc.testCase}: ${
+              tc.passed ? "Passed" : "Failed"
+            }\n`;
+            text += `Input = ${JSON.stringify(tc.input)}\n`;
+            text += `Expected = ${JSON.stringify(tc.expected)}\n`;
+            text += `Output = ${JSON.stringify(tc.output)}\n\n`;
+          });
+          setOutput(text);
+        }
+
+        if (parsed.status === "RUNTIME_ERROR") {
+          setOutput(parsed.error);
+        }
+      } catch {
+        setOutput(stdout || stderr);
+      }
+    } catch {
+      setOutput("Error: Failed to connect to backend");
     }
 
     setLoading(false);
   };
 
   return (
-    <Box mt={4}>
+    <Box>
       <Button
         colorScheme="green"
         onClick={runCode}
@@ -42,74 +81,16 @@ export default function Output({ editorRef }) {
         Run Code
       </Button>
 
-      {result && (
+      {output && (
         <Box
           p={4}
-          border="1px solid"
-          borderColor="gray.600"
-          borderRadius="md"
+          border="1px solidrgb(229, 235, 231)"
+          borderRadius="6px"
           fontFamily="monospace"
           whiteSpace="pre-wrap"
+          bg="white"
         >
-          
-          {result.status === "correct" && (
-            <>
-              <Text fontWeight="bold" mb={2}>
-                 All {result.totalTests ?? ""} test cases passed
-              </Text>
-
-              {Array.isArray(result.results) &&
-                result.results.map((tc) => (
-                  <Box key={tc.testCase} mb={2}>
-                    <Text>Test Case {tc.testCase}: Passed</Text>
-
-                    {tc.input && (
-                      <>
-                        <Text>
-                          nums = {JSON.stringify(tc.input.nums)}
-                        </Text>
-                        <Text>target = {tc.input.target}</Text>
-                      </>
-                    )}
-
-                    {tc.expected && (
-                      <Text>Expected = {tc.expected}</Text>
-                    )}
-                  </Box>
-                ))}
-            </>
-          )}
-
-         
-          {result.status === "wrong" && (
-            <>
-              <Text fontWeight="bold" mb={2}>
-                 Wrong Answer (Test Case {result.testCase})
-              </Text>
-
-              {result.input && (
-                <>
-                  <Text>
-                    nums = {JSON.stringify(result.input.nums)}
-                  </Text>
-                  <Text>target = {result.input.target}</Text>
-                </>
-              )}
-
-              {result.expected && (
-                <Text>Expected = {result.expected}</Text>
-              )}
-              {result.got && (
-                <Text>Your Output = {result.got}</Text>
-              )}
-            </>
-          )}
-
-          {result.status === "error" && (
-            <Text color="red.400">
-               Error: {result.error}
-            </Text>
-          )}
+          {output}
         </Box>
       )}
     </Box>

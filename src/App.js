@@ -1,13 +1,13 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import QuestionsPage from "./pages/QuestionsPage.jsx";
-import CodePage from "./pages/CodePage.jsx";
+import QuestionsPage from "./pages/QuestionsPage";
+import CodePage from "./pages/CodePage";
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<QuestionsPage />} />
-        <Route path="/questions/:id" element={<CodePage />} />
+        <Route path="/problems/:questionId" element={<CodePage />} />
       </Routes>
     </BrowserRouter>
   );
