@@ -1,79 +1,77 @@
 export default function buildPythonCode(userCode, question) {
     const { functionName, testCases } = question;
   
-    let code = `
-  ${userCode}
+    // 1️⃣ Remove ALL leading whitespace & blank lines
+    const cleanedUserCode = userCode.replace(/^\s+/, "");
   
-  import json
-  import sys
-  import traceback
+    // 2️⃣ Start file with user code at column 0 (NO template indentation)
+    let code = "";
+    code += cleanedUserCode + "\n";
+    code += "import json\n";
+    code += "import sys\n";
+    code += "import traceback\n\n";
   
-  results = []
+    code += "results = []\n\n";
   
-  def normalize(x):
-      if isinstance(x, tuple):
-          return list(x)
-      if isinstance(x, list):
-          return [normalize(i) for i in x]
-      if isinstance(x, dict):
-          return {k: normalize(v) for k, v in x.items()}
-      return x
+    code += "def normalize(x):\n";
+    code += "    if isinstance(x, tuple):\n";
+    code += "        return list(x)\n";
+    code += "    if isinstance(x, list):\n";
+    code += "        return [normalize(i) for i in x]\n";
+    code += "    if isinstance(x, dict):\n";
+    code += "        return {k: normalize(v) for k, v in x.items()}\n";
+    code += "    return x\n\n";
   
-  # If syntax error exists, Python will exit before this point
-  
-  try:
-      s = Solution()
-  except Exception:
-      print(json.dumps({
-          "status": "RUNTIME_ERROR",
-          "error": traceback.format_exc()
-      }))
-      sys.exit(0)
-  `;
+    code += "try:\n";
+    code += "    s = Solution()\n";
+    code += "except Exception:\n";
+    code += "    print(json.dumps({\n";
+    code += '        "status": "RUNTIME_ERROR",\n';
+    code += "        \"error\": traceback.format_exc()\n";
+    code += "    }))\n";
+    code += "    sys.exit(0)\n\n";
   
     testCases.forEach((tc, idx) => {
       const args = Object.values(tc.input)
         .map(v => JSON.stringify(v))
         .join(", ");
   
-      code += `
-  # ---- Test Case ${idx + 1} ----
-  try:
-      output = s.${functionName}(${args})
-  except Exception:
-      print(json.dumps({
-          "status": "RUNTIME_ERROR",
-          "testCase": ${idx + 1},
-          "error": traceback.format_exc()
-      }))
-      sys.exit(0)
+      code += `# ---- Test Case ${idx + 1} ----\n`;
+      code += "try:\n";
+      code += `    output = s.${functionName}(${args})\n`;
+      code += "except Exception:\n";
+      code += "    print(json.dumps({\n";
+      code += '        "status": "RUNTIME_ERROR",\n';
+      code += `        "testCase": ${idx + 1},\n`;
+      code += "        \"error\": traceback.format_exc()\n";
+      code += "    }))\n";
+      code += "    sys.exit(0)\n\n";
   
-  passed = normalize(output) == normalize(${JSON.stringify(tc.output)})
+      code += `passed = normalize(output) == normalize(${JSON.stringify(tc.output)})\n\n`;
   
-  results.append({
-      "testCase": ${idx + 1},
-      "input": ${JSON.stringify(tc.input)},
-      "expected": ${JSON.stringify(tc.output)},
-      "output": output,
-      "passed": passed
-  })
+      code += "results.append({\n";
+      code += `    "testCase": ${idx + 1},\n`;
+      code += `    "input": ${JSON.stringify(tc.input)},\n`;
+      code += `    "expected": ${JSON.stringify(tc.output)},\n`;
+      code += "    \"output\": output,\n";
+      code += "    \"passed\": passed\n";
+      code += "})\n\n";
   
-  if not passed:
-      print(json.dumps({
-          "status": "WRONG_ANSWER",
-          "results": results
-      }))
-      sys.exit(0)
-  `;
+      code += "if not passed:\n";
+      code += "    print(json.dumps({\n";
+      code += '        "status": "WRONG_ANSWER",\n';
+      code += "        \"results\": results\n";
+      code += "    }))\n";
+      code += "    sys.exit(0)\n\n";
     });
   
-    code += `
-  print(json.dumps({
-      "status": "ACCEPTED",
-      "results": results
-  }))
-  `;
+    code += "print(json.dumps({\n";
+    code += '    "status": "ACCEPTED",\n';
+    code += "    \"results\": results\n";
+    code += "}))\n";
   
+    console.log(code.split("\n").slice(0, 5).join("\n"));
+
     return code;
   }
   
