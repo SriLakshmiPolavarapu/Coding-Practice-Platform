@@ -7,7 +7,7 @@ export default function CodeEditor({
 }) {
   return (
     <Editor
-      height="420px"          
+      height="550px"          
       language={language}
       theme="vs-dark"
       defaultValue={initialCode}
