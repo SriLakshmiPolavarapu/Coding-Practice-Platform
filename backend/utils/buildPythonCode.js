@@ -1,10 +1,8 @@
 export default function buildPythonCode(userCode, question) {
     const { functionName, testCases } = question;
   
-    // 1️⃣ Remove ALL leading whitespace & blank lines
     const cleanedUserCode = userCode.replace(/^\s+/, "");
   
-    // 2️⃣ Start file with user code at column 0 (NO template indentation)
     let code = "";
     code += cleanedUserCode + "\n";
     code += "import json\n";

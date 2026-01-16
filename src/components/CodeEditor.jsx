@@ -7,7 +7,7 @@ export default function CodeEditor({
 }) {
   return (
     <Editor
-      height="420px"          // ✅ FIXED HEIGHT (LeetCode-style)
+      height="420px"          
       language={language}
       theme="vs-dark"
       defaultValue={initialCode}

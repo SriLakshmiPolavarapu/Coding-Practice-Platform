@@ -5,7 +5,6 @@ export default function QuestionItem({question, isSolved}){
     const navigate = useNavigate();
     const [checked, setChecked] = useState(isSolved);
 
-    //Set color
     const difficultyColor = {
         Easy: "green",                                                                                                                                                                                                                                                                                                    
         Medium: "orange",
@@ -28,7 +27,6 @@ export default function QuestionItem({question, isSolved}){
           }}
 
     >
-      {/* LEFT SIDE: Checkbox + Question Title */}
       <div style={{ display: "flex", alignItems: "center" }}>
         <input
           type="checkbox"
@@ -41,7 +39,6 @@ export default function QuestionItem({question, isSolved}){
         <h3 style={{ margin: 0 }}>{question.title}</h3>
       </div>
 
-      {/* RIGHT SIDE: Difficulty Tag */}
       <span
         style={{
           background: difficultyColor[question.difficulty],

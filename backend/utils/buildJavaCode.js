@@ -1,20 +1,13 @@
 export default function buildJavaCode(userCode, question) {
     const { functionName, testCases } = question;
   
-    // We'll generate Java code with:
-    // - userCode (must contain class Solution)
-    // - a Main class with tests
-    // NOTE: We support a few common types: int[], String, int, etc.
-    // For more complex types you can extend later.
-  
     function toJavaLiteral(val) {
       if (typeof val === "number") return String(val);
       if (typeof val === "string") return `"${val.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
       if (Array.isArray(val)) {
-        // assume int[] for now
+  
         return `new int[]{${val.map(toJavaLiteral).join(", ")}}`;
       }
-      // objects (like {nums:[], target:9}) are handled separately
       return "null";
     }
   
@@ -25,7 +18,6 @@ export default function buildJavaCode(userCode, question) {
       return "Object";
     }
   
-    // Build test calls
     const testLines = testCases.map((tc, idx) => {
       const inp = tc.input;
       const expected = tc.output;
@@ -36,7 +28,6 @@ export default function buildJavaCode(userCode, question) {
       const expectedLit = toJavaLiteral(expected);
       const expectedType = guessType(expected);
   
-      // Compare for arrays vs primitives/strings
       const isArray = Array.isArray(expected);
   
       const compare = isArray

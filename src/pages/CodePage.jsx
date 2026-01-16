@@ -14,7 +14,6 @@ import { useRef, useState } from "react";
 import CodeEditor from "../components/CodeEditor";
 import Output from "../components/Output";
 
-/* ================= PROBLEM DATA ================= */
 const problems = {
   "two-sum": {
     title: "Two Sum",
@@ -118,7 +117,6 @@ export default function CodePage() {
 
   return (
     <Grid templateColumns="1fr 1.7fr" height="100vh">
-      {/* LEFT PANEL */}
       <GridItem p={6} overflowY="auto" borderRight="1px solid #e5e7eb">
         <Button
           size="sm"
@@ -134,7 +132,6 @@ export default function CodePage() {
         </VStack>
       </GridItem>
 
-      {/* RIGHT PANEL */}
       <GridItem p={4} display="flex" flexDirection="column" gap={3}>
         <Box border="1px solid #e5e7eb" borderRadius="6px" overflow="hidden">
           <CodeEditor

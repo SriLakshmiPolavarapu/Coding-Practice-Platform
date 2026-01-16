@@ -7,7 +7,6 @@ import {
 } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 
-/* ================= QUESTION LIST ================= */
 const questions = [
   { id: "two-sum", title: "Two Sum", difficulty: "Easy" },
   { id: "reverse-string", title: "Reverse String", difficulty: "Easy" },
@@ -16,18 +15,17 @@ const questions = [
   { id: "merge-sorted", title: "Merge Two Sorted Lists", difficulty: "Hard" },
 ];
 
-/* ================= DIFFICULTY TAG STYLES ================= */
 const difficultyTagStyle = {
   Easy: {
-    bg: "#22c55e",   // green
+    bg: "#22c55e",   
     color: "white",
   },
   Medium: {
-    bg: "#facc15",   // yellow
+    bg: "#facc15",   
     color: "black",
   },
   Hard: {
-    bg: "#ef4444",   // red
+    bg: "#ef4444",   
     color: "white",
   },
 };
@@ -43,7 +41,6 @@ export default function QuestionsPage() {
       justifyContent="center"
       pt={12}
     >
-      {/* ===== CENTERED CONTAINER ===== */}
       <Box
         width="700px"
         bg="white"
@@ -66,10 +63,8 @@ export default function QuestionsPage() {
               transition="background 0.2s"
               onClick={() => navigate(`/problems/${q.id}`)}
             >
-              {/* Problem Title */}
               <Text fontWeight="500">{q.title}</Text>
 
-              {/* Difficulty Tag */}
               <Box
                 px={3}
                 py={1}
