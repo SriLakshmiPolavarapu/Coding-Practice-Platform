@@ -1,50 +1,53 @@
 import {
-    Box,
-    Button,
-    Menu,
-    MenuButton,
-    MenuItem,
-    MenuList,
-    Text,
-  } from "@chakra-ui/react";
-  import { LANGUAGE_VERSIONS } from "../constants";
-  
-  const languages = Object.entries(LANGUAGE_VERSIONS);
-  const ACTIVE_COLOR = "blue.400";
-  
-  const LanguageSelector = ({ language, onSelect }) => {
-    return (
-      <Box ml={2} mb={4}>
-        <Text mb={2} fontSize="lg">
-          Language:
-        </Text>
-  
-        <Menu>
-          <MenuButton as={Button}>{language}</MenuButton>
-  
-          <MenuList bg="#110c1b">
-            {languages.map(([lang, version]) => (
-              <MenuItem
-                key={lang}
-                color={lang === language ? ACTIVE_COLOR : ""}
-                bg={lang === language ? "gray.900" : "transparent"}
-                _hover={{
-                  color: ACTIVE_COLOR,
-                  bg: "gray.900",
-                }}
-                onClick={() => onSelect(lang)}
-              >
-                {lang}{" "}
-                <Text as="span" color="gray.600" fontSize="sm">
-                  ({version})
-                </Text>
-              </MenuItem>
-            ))}
-          </MenuList>
-        </Menu>
-      </Box>
-    );
-  };
-  
-  export default LanguageSelector;
-  
+  Box,
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuList,
+  Button,
+  Text,
+} from "@chakra-ui/react";
+import { ChevronDownIcon } from "@chakra-ui/icons";
+
+const LANGUAGES = [
+  { label: "Python", value: "python" },
+  { label: "JavaScript (JS)", value: "javascript" },
+];
+
+const LanguageSelector = ({ language, setLanguage }) => {
+  const current = LANGUAGES.find(l => l.value === language);
+
+  return (
+    <Box mb={4}>
+      <Text mb={2} fontSize="md">
+        Language
+      </Text>
+
+      <Menu>
+        <MenuButton
+          as={Button}
+          rightIcon={<ChevronDownIcon />}
+          bg="gray.800"
+          _hover={{ bg: "gray.700" }}
+        >
+          {current.label}
+        </MenuButton>
+
+        <MenuList bg="gray.900">
+          {LANGUAGES.map((lang) => (
+            <MenuItem
+              key={lang.value}
+              bg={lang.value === language ? "gray.800" : "transparent"}
+              _hover={{ bg: "gray.700" }}
+              onClick={() => setLanguage(lang.value)}
+            >
+              {lang.label}
+            </MenuItem>
+          ))}
+        </MenuList>
+      </Menu>
+    </Box>
+  );
+};
+
+export default LanguageSelector;

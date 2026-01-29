@@ -1,123 +1,54 @@
+import { useParams, useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
 import {
   Box,
-  Grid,
-  GridItem,
   Heading,
   Text,
-  Divider,
-  Code,
-  VStack,
   Button,
+  Select,
 } from "@chakra-ui/react";
-import { useParams, useNavigate } from "react-router-dom";
-import { useRef, useState } from "react";
-import CodeEditor from "../components/CodeEditor";
+import Editor from "@monaco-editor/react";
 import Output from "../components/Output";
-
-const problems = {
-  "two-sum": {
-    title: "Two Sum",
-    starterCode: `class Solution:
-    def twoSum(self, nums, target):
-        pass
-`,
-    description: (
-      <>
-        <Text>
-          Given an array of integers <Code>nums</Code> and an integer{" "}
-          <Code>target</Code>, return indices of the two numbers such that they
-          add up to <Code>target</Code>.
-        </Text>
-
-        <Text>
-          You may assume that each input would have exactly one solution, and
-          you may not use the same element twice.
-        </Text>
-
-        <Divider />
-
-        <Heading size="md">Example 1</Heading>
-        <Code p={2} bg="gray.100" display="block">
-          nums = [2,7,11,15]
-          <br />
-          target = 9
-        </Code>
-        <Text>Output: [0,1]</Text>
-
-        <Divider />
-
-        <Heading size="md">Example 2</Heading>
-        <Code p={2} bg="gray.100" display="block">
-          nums = [3,2,4]
-          <br />
-          target = 6
-        </Code>
-        <Text>Output: [1,2]</Text>
-
-        <Divider />
-
-        <Heading size="md">Constraints</Heading>
-        <Text>2 ≤ nums.length ≤ 10⁴</Text>
-        <Text>-10⁹ ≤ nums[i] ≤ 10⁹</Text>
-        <Text>-10⁹ ≤ target ≤ 10⁹</Text>
-      </>
-    ),
-  },
-
-  "reverse-string": {
-    title: "Reverse String",
-    starterCode: `class Solution:
-    def reverseString(self, s):
-        pass
-`,
-    description: (
-      <>
-        <Text>
-          Write a function that reverses a string. The input string is given as a
-          string <Code>s</Code>.
-        </Text>
-
-        <Divider />
-
-        <Heading size="md">Example 1</Heading>
-        <Code p={2} bg="gray.100" display="block">
-          s = "hello"
-        </Code>
-        <Text>Output: "olleh"</Text>
-
-        <Divider />
-
-        <Heading size="md">Example 2</Heading>
-        <Code p={2} bg="gray.100" display="block">
-          s = "abcd"
-        </Code>
-        <Text>Output: "dcba"</Text>
-
-        <Divider />
-
-        <Heading size="md">Constraints</Heading>
-        <Text>1 ≤ s.length ≤ 10⁵</Text>
-        <Text>s consists of printable ASCII characters</Text>
-      </>
-    ),
-  },
-};
+import questions from "../data/questions.json";
 
 export default function CodePage() {
-  const { questionId } = useParams();
+  const { id } = useParams();
   const navigate = useNavigate();
-  const problem = problems[questionId];
-
   const editorRef = useRef(null);
-  const [language] = useState("python");
 
-  if (!problem) {
-    return <Box p={6}>Problem not found</Box>;
+  const [language, setLanguage] = useState("python");
+  const [code, setCode] = useState("");
+
+  const question = questions.find((q) => q.id === id);
+
+  // 🔴 Load template when question or language changes
+  useEffect(() => {
+    if (!question) return;
+
+    const template = question.languageTemplates[language];
+    setCode(template);
+  }, [language, question]);
+
+  if (!question) {
+    return (
+      <Box p={10}>
+        <Text>Question not found</Text>
+        <Button mt={4} onClick={() => navigate("/")}>
+          Back
+        </Button>
+      </Box>
+    );
   }
 
   return (
-    <Grid templateColumns="1fr 1.7fr" height="100vh">
-      <GridItem p={6} overflowY="auto" borderRight="1px solid #e5e7eb">
+    <Box display="flex" height="100vh">
+      {/* LEFT SIDE — PROBLEM DESCRIPTION */}
+      <Box
+        width="45%"
+        p={8}
+        overflowY="auto"
+        borderRight="1px solid #e5e7eb"
+      >
         <Button
           size="sm"
           mb={4}
@@ -126,29 +57,57 @@ export default function CodePage() {
           ← Back to Problems
         </Button>
 
-        <VStack align="start" spacing={4}>
-          <Heading>{problem.title}</Heading>
-          {problem.description}
-        </VStack>
-      </GridItem>
+        <Heading mb={4}>{question.title}</Heading>
 
-      <GridItem p={4} display="flex" flexDirection="column" gap={3}>
-        <Box border="1px solid #e5e7eb" borderRadius="6px" overflow="hidden">
-          <CodeEditor
-            editorRef={editorRef}
-            language={language}
-            initialCode={problem.starterCode}
-          />
-        </Box>
+        <Text mb={4}>{question.description}</Text>
 
-        <Box flex="1" overflowY="auto">
-          <Output
-            editorRef={editorRef}
-            questionId={questionId}
-            language={language}
-          />
-        </Box>
-      </GridItem>
-    </Grid>
+        <Heading size="md" mt={6} mb={2}>
+          Examples
+        </Heading>
+
+        {question.testCases.map((tc, idx) => (
+          <Box key={idx} mb={3}>
+            <Text fontWeight="600">Example {idx + 1}</Text>
+            <Text>Input: {JSON.stringify(tc.input)}</Text>
+            <Text>Output: {JSON.stringify(tc.output)}</Text>
+          </Box>
+        ))}
+      </Box>
+
+      {/* RIGHT SIDE — EDITOR */}
+      <Box width="55%" p={6}>
+        {/* Language Selector */}
+        <Select
+          value={language}
+          onChange={(e) => setLanguage(e.target.value)}
+          width="160px"
+          mb={2}
+        >
+          <option value="python">Python</option>
+          <option value="javascript">JavaScript</option>
+        </Select>
+
+        {/* Code Editor */}
+        <Editor
+          height="70vh"
+          theme="vs-dark"
+          language={language === "python" ? "python" : "javascript"}
+          value={code}
+          onMount={(editor) => (editorRef.current = editor)}
+          onChange={(value) => setCode(value)}
+          options={{
+            fontSize: 14,
+            minimap: { enabled: false },
+          }}
+        />
+
+        {/* Run Button + Output */}
+        <Output
+          editorRef={editorRef}
+          questionId={question.id}
+          language={language}
+        />
+      </Box>
+    </Box>
   );
 }

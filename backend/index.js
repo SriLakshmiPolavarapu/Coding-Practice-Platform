@@ -1,19 +1,15 @@
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
-import judgeRouter from "./routes/judge.js";
-
-dotenv.config();
+import judgeRoutes from "./routes/judge.js";
 
 const app = express();
+
 app.use(cors());
 app.use(express.json());
 
-app.use("/api", judgeRouter);
+app.use("/api", judgeRoutes);
 
-app.get("/health", (req, res) => {
-  res.json({ ok: true });
+const PORT = 5001;
+app.listen(PORT, () => {
+  console.log(`🚀 Backend running on port ${PORT}`);
 });
-
-const PORT = process.env.PORT || 5001;
-app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));

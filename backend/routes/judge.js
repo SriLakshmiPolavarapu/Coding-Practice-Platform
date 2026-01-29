@@ -1,62 +1,83 @@
+import express from "express";
 import fs from "fs";
 import path from "path";
+import { exec } from "child_process";
 import { fileURLToPath } from "url";
 
+import buildPythonCode from "../utils/buildPythonCode.js";
+import buildJavaScriptCode from "../utils/buildJavaScriptCode.js";
+
+const router = express.Router();
+
+// Resolve __dirname (ESM-safe)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const questionsPath = path.join(
+// Load questions.json safely
+const questionsPath = path.resolve(
   __dirname,
   "../../src/data/questions.json"
 );
-
 const questions = JSON.parse(
   fs.readFileSync(questionsPath, "utf-8")
 );
 
-
-import express from "express";
-
-
-import buildPythonCode from "../utils/buildPythonCode.js";
-import buildJavaCode from "../utils/buildJavaCode.js";
-import { runPython, runJava } from "../services/OneCompiler.js";
-
-const router = express.Router();
-
-function getQuestionById(id) {
-  return questions.find(q => q.id === id);
-}
-
-
 router.post("/run", async (req, res) => {
   const { questionId, language, code } = req.body;
 
-  if (!questionId || !language || !code) {
-    return res.json({ status: "error", error: "Missing questionId/language/code" });
+  console.log("========== RUN REQUEST ==========");
+  console.log("Question ID:", questionId);
+  console.log("Language RECEIVED:", language);
+  console.log("=================================");
+
+  const question = questions.find((q) => q.id === questionId);
+  if (!question) {
+    return res.json({ stderr: "Question not found" });
   }
 
-  const question = getQuestionById(questionId);
-  if (!question) {
-    return res.json({ status: "error", error: "Invalid questionId" });
-  }
+  const tempDir = path.join(process.cwd(), "temp");
+  if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir);
+
+  let filename;
+  let command;
+  let finalCode;
 
   try {
     if (language === "python") {
-      const fullCode = buildPythonCode(code, question);
-      const result = await runPython(fullCode);
-      return res.json({ status: "ok", ...result });
+      console.log("👉 Using PYTHON test harness");
+      filename = "main.py";
+      finalCode = buildPythonCode(code, question);
+      command = `python3 ${filename}`;
+    } else if (language === "javascript") {
+      console.log("👉 Using JAVASCRIPT test harness");
+      filename = "main.js";
+      finalCode = buildJavaScriptCode(code, question);
+      command = `node ${filename}`;
+    } else {
+      return res.json({ stderr: "Unsupported language" });
     }
 
-    if (language === "java") {
-      const fullCode = buildJavaCode(code, question);
-      const result = await runJava(fullCode);
-      return res.json({ status: "ok", ...result });
-    }
+    const filePath = path.join(tempDir, filename);
+    fs.writeFileSync(filePath, finalCode);
 
-    return res.json({ status: "error", error: "Unsupported language" });
-  } catch (e) {
-    return res.json({ status: "error", error: String(e) });
+    exec(command, { cwd: tempDir }, (error, stdout, stderr) => {
+      if (error && !stdout) {
+        return res.json({
+          stdout: "",
+          stderr: stderr || error.message,
+        });
+      }
+
+      return res.json({
+        stdout,
+        stderr,
+      });
+    });
+  } catch (err) {
+    return res.json({
+      stdout: "",
+      stderr: err.message,
+    });
   }
 });
 

@@ -6,26 +6,20 @@ import {
   Text,
 } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
+import questions from "../data/questions.json"; // ✅ USE SAME DATA
 
-const questions = [
-  { id: "two-sum", title: "Two Sum", difficulty: "Easy" },
-  { id: "reverse-string", title: "Reverse String", difficulty: "Easy" },
-  { id: "palindrome", title: "Palindrome Number", difficulty: "Easy" },
-  { id: "valid-parentheses", title: "Valid Parentheses", difficulty: "Medium" },
-  { id: "merge-sorted", title: "Merge Two Sorted Lists", difficulty: "Hard" },
-];
 
 const difficultyTagStyle = {
   Easy: {
-    bg: "#22c55e",   
+    bg: "#22c55e",
     color: "white",
   },
   Medium: {
-    bg: "#facc15",   
+    bg: "#facc15",
     color: "black",
   },
   Hard: {
-    bg: "#ef4444",   
+    bg: "#ef4444",
     color: "white",
   },
 };
@@ -68,12 +62,12 @@ export default function QuestionsPage() {
               <Box
                 px={3}
                 py={1}
-                borderRadius="1px"
+                borderRadius="6px"
                 fontSize="0.85em"
                 fontWeight="600"
                 bg={difficultyTagStyle[q.difficulty].bg}
                 color={difficultyTagStyle[q.difficulty].color}
-                minW="80px"
+                minW="90px"
                 textAlign="center"
               >
                 {q.difficulty}

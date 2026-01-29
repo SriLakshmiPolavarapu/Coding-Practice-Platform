@@ -3,30 +3,42 @@
     "id": "two-sum",
     "title": "Two Sum",
     "difficulty": "Easy",
-    "description": "Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.",
+    "description": "Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target. You may assume that each input would have exactly one solution, and you may not use the same element twice.",
     "functionName": "twoSum",
     "languageTemplates": {
       "python": "class Solution:\n    def twoSum(self, nums, target):\n        # write your code here\n        pass\n",
-      "java": "import java.util.*;\n\nclass Solution {\n    public int[] twoSum(int[] nums, int target) {\n        // write your code here\n        return new int[]{};\n    }\n}\n"
+      "javascript": "var twoSum = function(nums, target) {\n    // write your code here\n};\n"
     },
     "testCases": [
-      { "input": { "nums": [2, 7, 11, 15], "target": 9 }, "output": [0, 1] },
-      { "input": { "nums": [3, 2, 4], "target": 6 }, "output": [1, 2] }
+      {
+        "input": { "nums": [2, 7, 11, 15], "target": 9 },
+        "output": [0, 1]
+      },
+      {
+        "input": { "nums": [3, 2, 4], "target": 6 },
+        "output": [1, 2]
+      }
     ]
   },
   {
     "id": "reverse-string",
     "title": "Reverse String",
     "difficulty": "Easy",
-    "description": "Write a function that reverses a string.",
+    "description": "Write a function that reverses a string. The input string is given as a string s.",
     "functionName": "reverseString",
     "languageTemplates": {
       "python": "class Solution:\n    def reverseString(self, s):\n        # s is a string\n        pass\n",
-      "java": "class Solution {\n    public String reverseString(String s) {\n        // write your code here\n        return \"\";\n    }\n}\n"
+      "javascript": "var reverseString = function(s) {\n    // write your code here\n};\n"
     },
     "testCases": [
-      { "input": { "s": "hello" }, "output": "olleh" },
-      { "input": { "s": "abcd" }, "output": "dcba" }
+      {
+        "input": { "s": "hello" },
+        "output": "olleh"
+      },
+      {
+        "input": { "s": "abcd" },
+        "output": "dcba"
+      }
     ]
   }
 ]

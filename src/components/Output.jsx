@@ -10,6 +10,10 @@ export default function Output({ editorRef, questionId, language }) {
     if (!editorRef?.current) return;
 
     const code = editorRef.current.getValue();
+
+    // 🔴 CRITICAL LOG
+    console.log("LANGUAGE SENT FROM FRONTEND:", language);
+
     setLoading(true);
     setOutput("");
 
@@ -42,9 +46,7 @@ export default function Output({ editorRef, questionId, language }) {
             text += `Expected = ${JSON.stringify(tc.expected)}\n\n`;
           });
           setOutput(text);
-        }
-
-        if (parsed.status === "WRONG_ANSWER") {
+        } else if (parsed.status === "WRONG_ANSWER") {
           let text = "Wrong Answer\n\n";
           parsed.results.forEach((tc) => {
             text += `Test Case ${tc.testCase}: ${
@@ -55,9 +57,7 @@ export default function Output({ editorRef, questionId, language }) {
             text += `Output = ${JSON.stringify(tc.output)}\n\n`;
           });
           setOutput(text);
-        }
-
-        if (parsed.status === "RUNTIME_ERROR") {
+        } else if (parsed.status === "RUNTIME_ERROR") {
           setOutput(parsed.error);
         }
       } catch {
@@ -84,7 +84,7 @@ export default function Output({ editorRef, questionId, language }) {
       {output && (
         <Box
           p={4}
-          border="1px solidrgb(229, 235, 231)"
+          border="1px solid #e5e7eb"
           borderRadius="6px"
           fontFamily="monospace"
           whiteSpace="pre-wrap"
