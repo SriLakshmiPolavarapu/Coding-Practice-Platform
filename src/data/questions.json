@@ -40,5 +40,52 @@
         "output": "dcba"
       }
     ]
-  }
+  },
+  {
+    "id": "palindrome-string",
+    "title": "Palindrome String",
+    "difficulty": "Easy",
+    "description": "Given a string s, return true if it is a palindrome, otherwise return false.",
+    "functionName": "isPalindrome",
+    "languageTemplates": {
+      "python": "class Solution:\n    def isPalindrome(self, s):\n        # write your code here\n        pass\n",
+      "javascript": "var isPalindrome = function(s) {\n    // write your code here\n    return false;\n};\n"
+    },
+    "testCases": [
+      { "input": { "s": "madam" }, "output": true },
+      { "input": { "s": "hello" }, "output": false }
+    ]
+  },
+  {
+    "id": "max-element",
+    "title": "Maximum Element",
+    "difficulty": "Medium",
+    "description": "Given an array of integers nums, return the maximum element in the array.",
+    "functionName": "findMax",
+    "languageTemplates": {
+      "python": "class Solution:\n    def findMax(self, nums):\n        # write your code here\n        pass\n",
+      "javascript": "var findMax = function(nums) {\n    // write your code here\n    return null;\n};\n"
+    },
+    "testCases": [
+      { "input": { "nums": [1, 5, 3, 9, 2] }, "output": 9 },
+      { "input": { "nums": [-5, -2, -10] }, "output": -2 }
+    ]
+  },
+  {
+    "id": "count-vowels",
+    "title": "Count Vowels",
+    "difficulty": "Medium",
+    "description": "Given a string s, return the number of vowels in the string.",
+    "functionName": "countVowels",
+    "languageTemplates": {
+      "python": "class Solution:\n    def countVowels(self, s):\n        # write your code here\n        pass\n",
+      "javascript": "var countVowels = function(s) {\n    // write your code here\n    return 0;\n};\n"
+    },
+    "testCases": [
+      { "input": { "s": "hello" }, "output": 2 },
+      { "input": { "s": "rhythm" }, "output": 0 }
+    ]
+  }  
+  
+  
 ]

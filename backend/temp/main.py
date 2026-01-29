@@ -1,6 +1,7 @@
 class Solution:
-    def reverseString(self, s):
-        return s[::-1]
+    def twoSum(self, nums, target):
+        # write your code here
+        pass
 
 
 import json
@@ -29,7 +30,7 @@ except Exception:
 
 # ---- Test Case 1 ----
 try:
-    output = s.reverseString("hello")
+    output = s.twoSum([2,7,11,15], 9)
 except Exception:
     print(json.dumps({
         "status": "RUNTIME_ERROR",
@@ -38,12 +39,12 @@ except Exception:
     }))
     sys.exit(0)
 
-passed = normalize(output) == normalize("olleh")
+passed = normalize(output) == normalize([0,1])
 
 results.append({
     "testCase": 1,
-    "input": {"s":"hello"},
-    "expected": "olleh",
+    "input": {"nums":[2,7,11,15],"target":9},
+    "expected": [0,1],
     "output": output,
     "passed": passed
 })
@@ -57,7 +58,7 @@ if not passed:
 
 # ---- Test Case 2 ----
 try:
-    output = s.reverseString("abcd")
+    output = s.twoSum([3,2,4], 6)
 except Exception:
     print(json.dumps({
         "status": "RUNTIME_ERROR",
@@ -66,12 +67,12 @@ except Exception:
     }))
     sys.exit(0)
 
-passed = normalize(output) == normalize("dcba")
+passed = normalize(output) == normalize([1,2])
 
 results.append({
     "testCase": 2,
-    "input": {"s":"abcd"},
-    "expected": "dcba",
+    "input": {"nums":[3,2,4],"target":6},
+    "expected": [1,2],
     "output": output,
     "passed": passed
 })
