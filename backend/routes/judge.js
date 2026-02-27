@@ -1,83 +1,118 @@
 import express from "express";
+import { executeCode } from "../services/OneCompiler.js";
 import fs from "fs";
 import path from "path";
-import { exec } from "child_process";
 import { fileURLToPath } from "url";
 
-import buildPythonCode from "../utils/buildPythonCode.js";
-import buildJavaScriptCode from "../utils/buildJavaScriptCode.js";
-
 const router = express.Router();
-
-// Resolve __dirname (ESM-safe)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Load questions.json safely
-const questionsPath = path.resolve(
-  __dirname,
-  "../../src/data/questions.json"
-);
-const questions = JSON.parse(
-  fs.readFileSync(questionsPath, "utf-8")
-);
+const questionsPath = path.resolve(__dirname, "../../src/data/questions.json");
+const questions = JSON.parse(fs.readFileSync(questionsPath, "utf-8"));
 
-router.post("/run", async (req, res) => {
-  const { questionId, language, code } = req.body;
+function parseValue(v) {
+  if (typeof v !== "string") return JSON.stringify(v);
+  if (v.startsWith("[") || v.startsWith("{")) return v;
+  if (v === "true") return "True";
+  if (v === "false") return "False";
+  if (!isNaN(v) && v.trim() !== "") return v;
+  return JSON.stringify(v);
+}
 
-  console.log("========== RUN REQUEST ==========");
-  console.log("Question ID:", questionId);
-  console.log("Language RECEIVED:", language);
-  console.log("=================================");
+function parseValueJS(v) {
+  if (typeof v !== "string") return JSON.stringify(v);
+  if (v.startsWith("[") || v.startsWith("{")) return v;
+  if (!isNaN(v) && v.trim() !== "") return v;
+  return JSON.stringify(v);
+}
 
-  const question = questions.find((q) => q.id === questionId);
-  if (!question) {
-    return res.json({ stderr: "Question not found" });
+function buildRunnableCode(language, userCode, functionName, input) {
+  const { output, expected, ...cleanInput } = input;
+
+  if (language === "python") {
+    const args = Object.entries(cleanInput)
+      .map(([k, v]) => `${k}=${parseValue(v)}`)
+      .join(", ");
+
+    return `
+${userCode}
+
+sol = Solution()
+result = sol.${functionName}(${args})
+print(result)
+`.trim();
   }
 
-  const tempDir = path.join(process.cwd(), "temp");
-  if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir);
+  if (language === "javascript") {
+    const args = Object.values(cleanInput)
+      .map(v => parseValueJS(v))
+      .join(", ");
 
-  let filename;
-  let command;
-  let finalCode;
+    return `
+${userCode}
 
+const result = ${functionName}(${args});
+console.log(JSON.stringify(result));
+`.trim();
+  }
+
+  return userCode;
+}
+
+const normalize = (val) =>
+  String(val)
+    .toLowerCase()
+    .replace(/\s+/g, "")
+    .replace(/[\[\]]/g, "")
+    .replace(/,+/g, ",")
+    .trim();
+
+router.post("/", async (req, res) => {
   try {
-    if (language === "python") {
-      console.log("👉 Using PYTHON test harness");
-      filename = "main.py";
-      finalCode = buildPythonCode(code, question);
-      command = `python3 ${filename}`;
-    } else if (language === "javascript") {
-      console.log("👉 Using JAVASCRIPT test harness");
-      filename = "main.js";
-      finalCode = buildJavaScriptCode(code, question);
-      command = `node ${filename}`;
-    } else {
-      return res.json({ stderr: "Unsupported language" });
+    const { code, language, questionId, customInput } = req.body;
+    const startTime = Date.now();
+
+    const question = questions.find(q => q.id === questionId);
+    if (!question) return res.status(404).json({ error: "Question not found" });
+
+    const testCases = customInput
+      ? [{ input: customInput, output: "" }]
+      : question.testCases;
+
+    const results = [];
+
+    for (const test of testCases) {
+      const runnableCode = buildRunnableCode(
+        language,
+        code,
+        question.functionName,
+        test.input
+      );
+
+      const userOutput = await executeCode({
+        language,
+        code: runnableCode,
+        input: ""
+      });
+
+      const actual = String(userOutput || "").trim();
+      const expected = String(test.output ?? "").trim();
+
+      results.push({
+        input: test.input,
+        expected,
+        actual,
+        passed: customInput ? true : normalize(actual) === normalize(expected)
+      });
     }
 
-    const filePath = path.join(tempDir, filename);
-    fs.writeFileSync(filePath, finalCode);
+    const executionTime = Date.now() - startTime;
+    res.json({ success: true, results, executionTime });
 
-    exec(command, { cwd: tempDir }, (error, stdout, stderr) => {
-      if (error && !stdout) {
-        return res.json({
-          stdout: "",
-          stderr: stderr || error.message,
-        });
-      }
-
-      return res.json({
-        stdout,
-        stderr,
-      });
-    });
   } catch (err) {
-    return res.json({
-      stdout: "",
-      stderr: err.message,
-    });
+    console.error("🔥 JUDGE ERROR:", err);
+    res.status(500).json({ success: false, error: "Execution failed" });
   }
 });
 
