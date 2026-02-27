@@ -1,52 +1,42 @@
-// backend/services/OneCompiler.js
-
+import { exec } from "child_process";
 import fs from "fs";
 import path from "path";
-import { exec } from "child_process";
-import os from "os";
+import { promisify } from "util";
+import { fileURLToPath } from "url";
 
-// --------------------------------------------------
-// Helper to run shell commands safely
-// --------------------------------------------------
-function runCmd(cmd, cwd) {
-  return new Promise((resolve) => {
-    exec(
-      cmd,
-      {
-        cwd,
-        timeout: 8000, // 8s timeout to prevent infinite loops
-      },
-      (error, stdout, stderr) => {
-        resolve({
-          error: error ? String(error.message || error) : null,
-          stdout: stdout?.toString() || "",
-          stderr: stderr?.toString() || "",
-        });
-      }
-    );
-  });
-}
+const execAsync = promisify(exec);
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const tmpDir = path.resolve(__dirname, "../tmp");
 
-// --------------------------------------------------
-// PYTHON runner
-// --------------------------------------------------
-export async function runPython(fullCode) {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "lc-py-"));
-  const file = path.join(dir, "main.py");
+// Create tmp folder if it doesn't exist
+if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir);
 
-  fs.writeFileSync(file, fullCode, "utf8");
+const LANGUAGE_CONFIG = {
+  python: { ext: "py", cmd: (file) => `python3 ${file}` },
+  javascript: { ext: "js", cmd: (file) => `node ${file}` },
+};
 
-  return await runCmd("python3 main.py", dir);
-}
+export async function executeCode({ language, code }) {
+  const config = LANGUAGE_CONFIG[language];
+  if (!config) return `Unsupported language: ${language}`;
 
-// --------------------------------------------------
-// JAVASCRIPT runner (Node.js)
-// --------------------------------------------------
-export async function runJavaScript(fullCode) {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "lc-js-"));
-  const file = path.join(dir, "main.js");
+  const filename = `code_${Date.now()}.${config.ext}`;
+  const filepath = path.join(tmpDir, filename);
 
-  fs.writeFileSync(file, fullCode, "utf8");
+  try {
+    // Write code to temp file
+    fs.writeFileSync(filepath, code);
 
-  return await runCmd("node main.js", dir);
+    // Execute it
+    const { stdout, stderr } = await execAsync(config.cmd(filepath), {
+      timeout: 5000 // 5 second timeout
+    });
+
+    return stderr ? stderr : stdout;
+  } catch (err) {
+    return err.stderr || err.message || "Execution Error";
+  } finally {
+    // Clean up temp file
+    if (fs.existsSync(filepath)) fs.unlink(filepath, () => {});
+  }
 }
