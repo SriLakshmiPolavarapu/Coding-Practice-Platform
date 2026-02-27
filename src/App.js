@@ -1,17 +1,21 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import React from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { ChakraProvider } from "@chakra-ui/react";
 import QuestionsPage from "./pages/QuestionsPage";
 import CodePage from "./pages/CodePage";
 
-export default function App() {
+function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* Page 1: Questions List */}
-        <Route path="/" element={<QuestionsPage />} />
-
-        {/* Page 2: Problem + Editor */}
-        <Route path="/problems/:id" element={<CodePage />} />
-      </Routes>
-    </BrowserRouter>
+    <ChakraProvider>
+      <Router>
+        <Routes>
+          <Route path="/" element={<Navigate to="/problems" />} />
+          <Route path="/problems" element={<QuestionsPage />} />
+          <Route path="/problems/:slug" element={<CodePage />} />
+        </Routes>
+      </Router>
+    </ChakraProvider>
   );
 }
+
+export default App;

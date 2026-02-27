@@ -1,8 +1,9 @@
 class Solution:
-    def twoSum(self, nums, target):
-        # write your code here
-        pass
-
+    def reverseString(self, s):
+        rev = ""
+        for ch in s:
+            rev = ch + rev
+        return rev
 
 import json
 import sys
@@ -30,7 +31,7 @@ except Exception:
 
 # ---- Test Case 1 ----
 try:
-    output = s.twoSum([2,7,11,15], 9)
+    output = s.reverseString("hello")
 except Exception:
     print(json.dumps({
         "status": "RUNTIME_ERROR",
@@ -39,12 +40,12 @@ except Exception:
     }))
     sys.exit(0)
 
-passed = normalize(output) == normalize([0,1])
+passed = normalize(output) == normalize("olleh")
 
 results.append({
     "testCase": 1,
-    "input": {"nums":[2,7,11,15],"target":9},
-    "expected": [0,1],
+    "input": {"s":"hello"},
+    "expected": "olleh",
     "output": output,
     "passed": passed
 })
@@ -58,7 +59,7 @@ if not passed:
 
 # ---- Test Case 2 ----
 try:
-    output = s.twoSum([3,2,4], 6)
+    output = s.reverseString("abcd")
 except Exception:
     print(json.dumps({
         "status": "RUNTIME_ERROR",
@@ -67,12 +68,12 @@ except Exception:
     }))
     sys.exit(0)
 
-passed = normalize(output) == normalize([1,2])
+passed = normalize(output) == normalize("dcba")
 
 results.append({
     "testCase": 2,
-    "input": {"nums":[3,2,4],"target":6},
-    "expected": [1,2],
+    "input": {"s":"abcd"},
+    "expected": "dcba",
     "output": output,
     "passed": passed
 })
