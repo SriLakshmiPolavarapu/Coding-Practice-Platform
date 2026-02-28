@@ -201,7 +201,7 @@ const CodePage = () => {
           borderRadius: "8px",
           backgroundColor: "#fff"
         }}>
-          <h3 style={{ marginTop: 0 }}>Custom Test</h3>
+          <h3 style={{ marginTop: 0 }}>Custom Test Cases</h3>
 
           {inputKeys.map(key => (
             <div key={key} style={{ marginBottom: "10px", display: "flex", alignItems: "center", gap: "10px" }}>
@@ -219,6 +219,9 @@ const CodePage = () => {
           ))}
 
           <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
+           
+           {/* this part is for random generation of test cases */}
+           {/*
             <button
               onClick={generateRandomInput}
               style={{
@@ -228,6 +231,7 @@ const CodePage = () => {
             >
               Random
             </button>
+           */}
             <button
               onClick={runCustomTest}
               style={{
