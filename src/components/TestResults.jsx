@@ -29,7 +29,7 @@ const TestResults = ({ results = [], executionTime = 0 }) => {
               setExpandedIndex(expandedIndex === index ? null : index)
             }
           >
-            Test Case {index + 1} {test.passed ? "✅ PASSED" : "❌ FAILED"}
+            Test Case {index + 1} {test.passed ? " PASSED" : " FAILED"}
           </div>
 
           {expandedIndex === index && (

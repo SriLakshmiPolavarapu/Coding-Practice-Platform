@@ -11,7 +11,7 @@ export default function Output({ editorRef, questionId, language }) {
 
     const code = editorRef.current.getValue();
 
-    // 🔴 CRITICAL LOG
+    // CRITICAL LOG
     console.log("LANGUAGE SENT FROM FRONTEND:", language);
 
     setLoading(true);
