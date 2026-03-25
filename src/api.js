@@ -1,7 +1,19 @@
-import axios from "axios";
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
-const api = axios.create({
-  baseURL: "http://localhost:5001/api"
-});
+export const runCode = async (code, language, questionId) => {
+  const response = await fetch(`${API_URL}/api/run`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code, language, questionId }),
+  });
+  return response.json();
+};
 
-export default api;
+export const submitCode = async (code, language, questionId) => {
+  const response = await fetch(`${API_URL}/api/run`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code, language, questionId }),
+  });
+  return response.json();
+};
