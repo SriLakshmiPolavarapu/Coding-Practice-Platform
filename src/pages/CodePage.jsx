@@ -89,6 +89,7 @@ const CodePage = () => {
         timestamp: new Date().toISOString(),
         status: allPassed ? "Accepted" : "Wrong Answer",
         executionTime: data.executionTime,
+        timeComplexity: data.timeComplexity,
         results: data.results,
       };
       const updated = saveSubmission(slug, submission);
@@ -126,7 +127,6 @@ const CodePage = () => {
         width: "40%", borderRight: "1px solid #e0e0e0",
         display: "flex", flexDirection: "column", overflow: "hidden", backgroundColor: "#fff"
       }}>
-        {/* Tabs */}
         <div style={{ display: "flex", borderBottom: "1px solid #e0e0e0", flexShrink: 0 }}>
           {["description", "submissions"].map((tab) => (
             <button
@@ -146,7 +146,6 @@ const CodePage = () => {
           ))}
         </div>
 
-        {/* Tab content */}
         <div style={{ flex: 1, overflowY: "auto", padding: "24px" }}>
           {activeTab === "description" && (
             <>
@@ -206,17 +205,14 @@ const CodePage = () => {
         width: "60%", display: "flex", flexDirection: "column",
         overflow: "hidden", backgroundColor: "#fafafa"
       }}>
-        {/* Language selector */}
         <div style={{ padding: "12px 20px", borderBottom: "1px solid #e0e0e0", backgroundColor: "#fff", flexShrink: 0 }}>
           <LanguageSelector language={language} setLanguage={setLanguage} />
         </div>
 
-        {/* Editor */}
         <div style={{ flex: 1, overflow: "hidden" }}>
           <CodeEditor question={question} language={language} code={code} setCode={setCode} />
         </div>
 
-        {/* Run + Submit buttons */}
         <div style={{
           padding: "12px 20px", borderTop: "1px solid #e0e0e0",
           backgroundColor: "#fff", display: "flex", gap: "12px", flexShrink: 0
@@ -268,11 +264,15 @@ const CodePage = () => {
                     {output.status === "Accepted" ? "✓ Accepted" : "✗ Wrong Answer"}
                   </div>
                 )}
+
+                {/* Execution time + time complexity */}
                 {output.executionTime !== undefined && (
-                  <p style={{ margin: "12px 0 8px", color: "#555", fontSize: "14px" }}>
-                    Execution Time: {output.executionTime} ms
-                  </p>
+                  <div style={{ display: "flex", gap: "20px", margin: "12px 0 8px", fontSize: "14px", color: "#555" }}>
+                    <span>⏱ Execution Time: <strong>{output.executionTime} ms</strong></span>
+                    <span>📊 Time Complexity: <strong>{output.timeComplexity || "O(n)"}</strong></span>
+                  </div>
                 )}
+
                 <TestResults results={output.results} />
               </>
             )}
@@ -343,9 +343,12 @@ const SubmissionsPanel = ({ submissions, expandedId, setExpandedId }) => {
             <span style={{ fontWeight: "700", color: sub.status === "Accepted" ? "#1a7f37" : "#cf222e" }}>
               {sub.status === "Accepted" ? "✓" : "✗"} {sub.status}
             </span>
-            <span style={{ fontSize: "12px", color: "#888" }}>
-              {sub.language} &nbsp;|&nbsp; {new Date(sub.timestamp).toLocaleString()}
-            </span>
+            <div style={{ display: "flex", gap: "12px", fontSize: "12px", color: "#888" }}>
+              {sub.timeComplexity && (
+                <span>📊 {sub.timeComplexity}</span>
+              )}
+              <span>{sub.language} &nbsp;|&nbsp; {new Date(sub.timestamp).toLocaleString()}</span>
+            </div>
             <span style={{ fontSize: "12px", color: "#888" }}>
               {expandedId === sub.id ? "▲" : "▼"}
             </span>

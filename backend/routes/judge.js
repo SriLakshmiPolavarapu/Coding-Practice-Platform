@@ -34,7 +34,6 @@ function buildRunnableCode(language, userCode, functionName, input) {
     const args = Object.entries(cleanInput)
       .map(([k, v]) => `${k}=${parseValue(v)}`)
       .join(", ");
-
     return `
 ${userCode}
 
@@ -48,7 +47,6 @@ print(result)
     const args = Object.values(cleanInput)
       .map(v => parseValueJS(v))
       .join(", ");
-
     return `
 ${userCode}
 
@@ -58,6 +56,62 @@ console.log(JSON.stringify(result));
   }
 
   return userCode;
+}
+
+function analyzeTimeComplexity(code, language) {
+  const c = code.toLowerCase();
+
+  if (language === "python") {
+    const hasNestedLoop = /for .+ in [\s\S]{0,500}for .+ in /.test(c);
+    const hasWhileNested = /while [\s\S]{0,500}for .+ in |for .+ in [\s\S]{0,500}while /.test(c);
+
+    const hasBinary = (
+      /left\s*=.*right\s*=/.test(c) ||
+      (/mid\s*=/.test(c) && /\/\/\s*2/.test(c))
+    );
+
+    const funcMatch = c.match(/def (\w+)\(/);
+    const funcName = funcMatch ? funcMatch[1] : null;
+    const hasRecursion = funcName && new RegExp(`return [^\\n]*${funcName}\\s*\\(`).test(c);
+
+    const hasSingleLoop = /for .+ in |while /.test(c);
+    const hasHashMap = /\{\}|dict\(|defaultdict|set\(/.test(c);
+
+    if (hasNestedLoop || hasWhileNested) return "O(n²)";
+    if (hasRecursion && hasBinary) return "O(log n)";
+    if (hasBinary) return "O(log n)";
+    if (hasRecursion && hasSingleLoop) return "O(n)";
+    if (hasRecursion) return "O(n)";
+    if (hasSingleLoop) return "O(n)";
+    if (hasHashMap) return "O(n)";
+    return "O(1)";
+  }
+
+  if (language === "javascript") {
+    const hasNestedLoop = /for\s*\([\s\S]{0,500}for\s*\(|while\s*\([\s\S]{0,500}for\s*\(/.test(c);
+
+    const hasBinary = (
+      /left\s*=.*right\s*=/.test(c) ||
+      (/mid\s*=/.test(c) && (/>>\s*1/.test(c) || /math\.floor/.test(c)))
+    );
+
+    const funcMatch = c.match(/(?:function|const|var|let)\s+(\w+)\s*(?:=\s*(?:function|\())?/);
+    const funcName = funcMatch ? funcMatch[1] : null;
+    const hasRecursion = funcName && new RegExp(`return [^\\n]*${funcName}\\s*\\(`).test(c);
+
+    const hasSingleLoop = /for\s*\(|while\s*\(|\.foreach|\.map\(|\.filter\(|\.reduce\(/.test(c);
+    const hasHashMap = /new map\(\)|new set\(\)|= \{\}/.test(c);
+
+    if (hasNestedLoop) return "O(n²)";
+    if (hasRecursion && hasBinary) return "O(log n)";
+    if (hasBinary) return "O(log n)";
+    if (hasRecursion) return "O(n)";
+    if (hasSingleLoop) return "O(n)";
+    if (hasHashMap) return "O(n)";
+    return "O(1)";
+  }
+
+  return "O(n)";
 }
 
 const normalize = (val) =>
@@ -108,8 +162,9 @@ router.post("/", async (req, res) => {
     }
 
     const executionTime = Date.now() - startTime;
-    res.json({ success: true, results, executionTime });
+    const timeComplexity = analyzeTimeComplexity(code, language);
 
+    res.json({ success: true, results, executionTime, timeComplexity });
   } catch (err) {
     console.error("🔥 JUDGE ERROR:", err);
     res.status(500).json({ success: false, error: "Execution failed" });
