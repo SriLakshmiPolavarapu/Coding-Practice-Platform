@@ -5,6 +5,11 @@
     "difficulty": "Easy",
     "description": "Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target. You may assume that each input would have exactly one solution, and you may not use the same element twice.",
     "functionName": "twoSum",
+    "hints": [
+      "Try looping through every pair of numbers and check if they add up to target. This is O(n²) but valid.",
+      "Can you use a dictionary to store numbers you've already seen? For each number, check if target - num exists in the dictionary.",
+      "The key insight: for each num, the complement is target - num. If that complement is already in your hash map, you found your answer."
+    ],
     "languageTemplates": {
       "python": "class Solution:\n    def twoSum(self, nums, target):\n        # write your code here\n        pass\n",
       "javascript": "var twoSum = function(nums, target) {\n    // write your code here\n};\n"
@@ -22,6 +27,11 @@
     "difficulty": "Easy",
     "description": "Write a function that reverses a string. The input string is given as a string s.",
     "functionName": "reverseString",
+    "hints": [
+      "Think about reading the string from the last character to the first.",
+      "You can use two pointers — one at the start and one at the end — and work your way inward.",
+      "In Python, slicing with [::-1] reverses a string in one line. Try to also solve it without that shortcut."
+    ],
     "languageTemplates": {
       "python": "class Solution:\n    def reverseString(self, s):\n        # s is a string\n        pass\n",
       "javascript": "var reverseString = function(s) {\n    // write your code here\n};\n"
@@ -39,6 +49,11 @@
     "difficulty": "Easy",
     "description": "Given a string s, return true if it is a palindrome, otherwise return false.",
     "functionName": "isPalindrome",
+    "hints": [
+      "A palindrome reads the same forwards and backwards. Compare the string to its reverse.",
+      "Try using two pointers — one at the start and one at the end. If they ever mismatch, it's not a palindrome.",
+      "Edge case: a single character is always a palindrome."
+    ],
     "languageTemplates": {
       "python": "class Solution:\n    def isPalindrome(self, s):\n        # write your code here\n        pass\n",
       "javascript": "var isPalindrome = function(s) {\n    // write your code here\n    return false;\n};\n"
@@ -56,6 +71,11 @@
     "difficulty": "Medium",
     "description": "Given an array of integers nums, return the maximum element in the array.",
     "functionName": "findMax",
+    "hints": [
+      "Start by assuming the first element is the maximum. Then loop through the rest and update if you find something bigger.",
+      "Think about what happens with all negative numbers — your initial max needs to handle that case.",
+      "Python has a built-in max() function, but try solving it manually with a loop first to understand the logic."
+    ],
     "languageTemplates": {
       "python": "class Solution:\n    def findMax(self, nums):\n        # write your code here\n        pass\n",
       "javascript": "var findMax = function(nums) {\n    // write your code here\n    return null;\n};\n"
@@ -73,6 +93,11 @@
     "difficulty": "Medium",
     "description": "Given a string s, return the number of vowels in the string.",
     "functionName": "countVowels",
+    "hints": [
+      "The vowels are a, e, i, o, u. Don't forget both uppercase and lowercase.",
+      "Loop through each character and check if it belongs to the set of vowels.",
+      "Using a set like {'a','e','i','o','u'} for lookup is faster than checking each vowel individually."
+    ],
     "languageTemplates": {
       "python": "class Solution:\n    def countVowels(self, s):\n        # write your code here\n        pass\n",
       "javascript": "var countVowels = function(s) {\n    // write your code here\n    return 0;\n};\n"
@@ -90,6 +115,11 @@
     "difficulty": "Hard",
     "description": "Given an integer n, return 'Fizz' if n is divisible by 3, 'Buzz' if divisible by 5, 'FizzBuzz' if divisible by both, and the number itself as a string otherwise.",
     "functionName": "fizzBuzz",
+    "hints": [
+      "Use the modulo operator (%) to check divisibility. n % 3 == 0 means n is divisible by 3.",
+      "Check FizzBuzz (divisible by both) first, before checking Fizz or Buzz individually.",
+      "For the last case, make sure to return the number as a string, not an integer."
+    ],
     "languageTemplates": {
       "python": "class Solution:\n    def fizzBuzz(self, n):\n        # write your code here\n        pass\n",
       "javascript": "var fizzBuzz = function(n) {\n    // write your code here\n};\n"
@@ -107,6 +137,11 @@
     "difficulty": "Easy",
     "description": "Given an integer n, return the nth Fibonacci number. The sequence starts: 0, 1, 1, 2, 3, 5, 8, ...",
     "functionName": "fib",
+    "hints": [
+      "The base cases are fib(0) = 0 and fib(1) = 1. Every other number is the sum of the two before it.",
+      "You can solve this recursively: fib(n) = fib(n-1) + fib(n-2). But be careful — pure recursion is very slow for large n.",
+      "For a faster solution, use two variables to track the last two numbers and iterate forward instead of recursing."
+    ],
     "languageTemplates": {
       "python": "class Solution:\n    def fib(self, n):\n        # write your code here\n        pass\n",
       "javascript": "var fib = function(n) {\n    // write your code here\n};\n"
@@ -124,6 +159,11 @@
     "difficulty": "Easy",
     "description": "Given an integer array nums, return true if any value appears at least twice in the array, and return false if every element is distinct.",
     "functionName": "containsDuplicate",
+    "hints": [
+      "The brute force approach is to check every pair — but that's O(n²). Can you do better?",
+      "Think about using a set. As you loop through the array, if a number is already in the set, you found a duplicate.",
+      "A set only stores unique values, so adding a number that already exists tells you it's a duplicate."
+    ],
     "languageTemplates": {
       "python": "class Solution:\n    def containsDuplicate(self, nums):\n        # write your code here\n        pass\n",
       "javascript": "var containsDuplicate = function(nums) {\n    // write your code here\n};\n"
@@ -141,6 +181,11 @@
     "difficulty": "Medium",
     "description": "Given a sorted array of integers nums and a target value, return the index of target if it exists, otherwise return -1.",
     "functionName": "search",
+    "hints": [
+      "Since the array is sorted, you don't need to check every element. Start in the middle — if the middle is too big, search left; if too small, search right.",
+      "Use two pointers: left = 0 and right = len(nums) - 1. Calculate mid = (left + right) // 2 each iteration.",
+      "Keep narrowing the search window until left > right. If you never find the target, return -1."
+    ],
     "languageTemplates": {
       "python": "class Solution:\n    def search(self, nums, target):\n        # write your code here\n        pass\n",
       "javascript": "var search = function(nums, target) {\n    // write your code here\n};\n"
@@ -158,6 +203,11 @@
     "difficulty": "Medium",
     "description": "Given a string s containing only '(', ')', '{', '}', '[' and ']', determine if the input string is valid. Open brackets must be closed by the same type of brackets and in the correct order.",
     "functionName": "isValid",
+    "hints": [
+      "Think about using a stack. When you see an opening bracket, push it. When you see a closing bracket, check if it matches the top of the stack.",
+      "If the stack is empty when you encounter a closing bracket, or the top doesn't match, return false.",
+      "At the end, the stack should be empty. If it still has items, some brackets were never closed."
+    ],
     "languageTemplates": {
       "python": "class Solution:\n    def isValid(self, s):\n        # write your code here\n        pass\n",
       "javascript": "var isValid = function(s) {\n    // write your code here\n};\n"

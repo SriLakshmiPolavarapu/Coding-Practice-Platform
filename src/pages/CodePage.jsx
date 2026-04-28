@@ -9,6 +9,7 @@ import axios from "axios";
 const api = axios.create({ baseURL: process.env.REACT_APP_API_URL || "http://localhost:5001" });
 
 const SUBMISSIONS_KEY = (slug) => `submissions_${slug}`;
+const SOLVED_KEY = "solved_problems";
 
 const getSubmissions = (slug) => {
   try {
@@ -23,6 +24,88 @@ const saveSubmission = (slug, submission) => {
   const updated = [submission, ...existing];
   localStorage.setItem(SUBMISSIONS_KEY(slug), JSON.stringify(updated));
   return updated;
+};
+
+const getSolved = () => {
+  try {
+    return JSON.parse(localStorage.getItem(SOLVED_KEY)) || [];
+  } catch {
+    return [];
+  }
+};
+
+const markSolved = (slug) => {
+  const existing = getSolved();
+  if (!existing.includes(slug)) {
+    localStorage.setItem(SOLVED_KEY, JSON.stringify([...existing, slug]));
+  }
+};
+
+const getErrorMessage = (err) => {
+  if (!err.response) {
+    return "Cannot connect to the server. Make sure the backend is running on port 5001.";
+  }
+  const status = err.response?.status;
+  const serverMsg = err.response?.data?.error;
+  if (status === 400) return serverMsg || "Bad request. Check your code and try again.";
+  if (status === 404) return "Question not found. Try refreshing the page.";
+  if (status === 408) return "Your code took too long to run. Check for infinite loops.";
+  if (status === 500) return serverMsg || "Server error. Check the backend logs.";
+  return serverMsg || "Something went wrong. Please try again.";
+};
+
+// ── Hints Component ───────────────────────────────────────────────
+const HintsSection = ({ hints }) => {
+  const [revealed, setRevealed] = useState([]);
+
+  const revealNext = () => {
+    if (revealed.length < hints.length) {
+      setRevealed((prev) => [...prev, prev.length]);
+    }
+  };
+
+  return (
+    <div style={{ marginTop: "24px" }}>
+      <h4 style={{ marginBottom: "12px" }}>💡 Hints</h4>
+
+      {revealed.map((idx) => (
+        <div key={idx} style={{
+          background: "#fffbeb",
+          border: "1px solid #fcd34d",
+          borderRadius: "6px",
+          padding: "10px 14px",
+          marginBottom: "8px",
+          fontSize: "0.9rem",
+          lineHeight: "1.6",
+          color: "#444",
+        }}>
+          <strong>Hint {idx + 1}:</strong> {hints[idx]}
+        </div>
+      ))}
+
+      {revealed.length < hints.length ? (
+        <button
+          onClick={revealNext}
+          style={{
+            background: "none",
+            border: "1px solid #f5a623",
+            color: "#f5a623",
+            padding: "6px 14px",
+            borderRadius: "6px",
+            cursor: "pointer",
+            fontSize: "0.85rem",
+            fontWeight: "600",
+          }}
+        >
+          {revealed.length === 0 ? "Show Hint 1" : `Show Hint ${revealed.length + 1}`}
+        </button>
+      ) : (
+        <p style={{ fontSize: "0.85rem", color: "#888", marginTop: "4px" }}>
+          All hints revealed.
+        </p>
+      )}
+    </div>
+  );
 };
 
 const CodePage = () => {
@@ -40,6 +123,7 @@ const CodePage = () => {
   const [expandedId, setExpandedId] = useState(null);
   const [customFields, setCustomFields] = useState({});
   const [customResult, setCustomResult] = useState(null);
+  const [isSolved, setIsSolved] = useState(false);
 
   const inputKeys = question ? Object.keys(question.testCases[0].input) : [];
 
@@ -51,6 +135,7 @@ const CodePage = () => {
     if (question) {
       setCustomFields(Object.fromEntries(inputKeys.map((k) => [k, ""])));
       setSubmissions(getSubmissions(slug));
+      setIsSolved(getSolved().includes(slug));
     }
   }, [slug]);
 
@@ -61,21 +146,27 @@ const CodePage = () => {
   }, [question, language]);
 
   const handleRun = async () => {
-    if (!code.trim()) return;
+    if (!code.trim()) {
+      setOutput({ error: "Editor is empty. Write some code before running.", mode: "run" });
+      return;
+    }
     setIsRunning(true);
     setOutput(null);
     try {
       const response = await api.post("/api/judge", { code, language, questionId: slug });
       setOutput({ ...response.data, mode: "run" });
     } catch (err) {
-      setOutput({ error: "Failed to connect to server.", mode: "run" });
+      setOutput({ error: getErrorMessage(err), mode: "run" });
     } finally {
       setIsRunning(false);
     }
   };
 
   const handleSubmit = async () => {
-    if (!code.trim()) return;
+    if (!code.trim()) {
+      setOutput({ error: "Editor is empty. Write some code before submitting.", mode: "submit" });
+      return;
+    }
     setIsSubmitting(true);
     setOutput(null);
     try {
@@ -94,22 +185,32 @@ const CodePage = () => {
       };
       const updated = saveSubmission(slug, submission);
       setSubmissions(updated);
+
+      if (allPassed) {
+        markSolved(slug);
+        setIsSolved(true);
+      }
+
       setOutput({ ...data, mode: "submit", status: submission.status });
     } catch (err) {
-      setOutput({ error: "Failed to connect to server.", mode: "submit" });
+      setOutput({ error: getErrorMessage(err), mode: "submit" });
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const runCustomTest = async () => {
+    if (!code.trim()) {
+      setCustomResult({ error: "Editor is empty. Write some code first." });
+      return;
+    }
     try {
       const response = await api.post("/api/judge", {
         code, language, questionId: slug, customInput: customFields,
       });
       setCustomResult(response.data);
     } catch (err) {
-      console.error(err);
+      setCustomResult({ error: getErrorMessage(err) });
     }
   };
 
@@ -169,6 +270,16 @@ const CodePage = () => {
                 }}>
                   {question.difficulty}
                 </span>
+                {isSolved && (
+                  <span style={{
+                    background: "#e6f9ed", color: "#1a7f37",
+                    padding: "3px 10px", borderRadius: "12px",
+                    fontSize: "0.8rem", fontWeight: "600",
+                    border: "1px solid #a8e6bc"
+                  }}>
+                    ✓ Solved
+                  </span>
+                )}
               </div>
 
               <p style={{ color: "#444", lineHeight: "1.6", marginBottom: "24px" }}>
@@ -187,6 +298,11 @@ const CodePage = () => {
                   <div>Output: {JSON.stringify(tc.output)}</div>
                 </div>
               ))}
+
+              {/* ── Hints ── */}
+              {question.hints && question.hints.length > 0 && (
+                <HintsSection hints={question.hints} />
+              )}
             </>
           )}
 
@@ -215,7 +331,8 @@ const CodePage = () => {
 
         <div style={{
           padding: "12px 20px", borderTop: "1px solid #e0e0e0",
-          backgroundColor: "#fff", display: "flex", gap: "12px", flexShrink: 0
+          backgroundColor: "#fff", display: "flex", gap: "12px",
+          alignItems: "center", flexShrink: 0
         }}>
           <button
             onClick={handleRun}
@@ -243,6 +360,11 @@ const CodePage = () => {
           >
             {isSubmitting ? "Submitting..." : "Submit"}
           </button>
+          {isSolved && (
+            <span style={{ color: "#1a7f37", fontWeight: "600", fontSize: "14px" }}>
+              ✓ Solved
+            </span>
+          )}
         </div>
 
         {/* Output */}
@@ -252,7 +374,13 @@ const CodePage = () => {
             padding: "0 20px 16px", maxHeight: "260px", overflowY: "auto", flexShrink: 0
           }}>
             {output.error ? (
-              <p style={{ color: "red", marginTop: 12 }}>{output.error}</p>
+              <div style={{
+                margin: "12px 0 8px", padding: "12px 16px", borderRadius: "6px",
+                background: "#fff3cd", border: "1px solid #ffc107",
+                color: "#856404", fontSize: "14px", lineHeight: "1.6",
+              }}>
+                ⚠️ {output.error}
+              </div>
             ) : (
               <>
                 {output.mode === "submit" && (
@@ -264,15 +392,12 @@ const CodePage = () => {
                     {output.status === "Accepted" ? "✓ Accepted" : "✗ Wrong Answer"}
                   </div>
                 )}
-
-                {/* Execution time + time complexity */}
                 {output.executionTime !== undefined && (
                   <div style={{ display: "flex", gap: "20px", margin: "12px 0 8px", fontSize: "14px", color: "#555" }}>
                     <span>⏱ Execution Time: <strong>{output.executionTime} ms</strong></span>
                     <span>📊 Time Complexity: <strong>{output.timeComplexity || "O(n)"}</strong></span>
                   </div>
                 )}
-
                 <TestResults results={output.results} />
               </>
             )}
@@ -307,8 +432,15 @@ const CodePage = () => {
             Run Custom
           </button>
           {customResult && (
-            <div style={{ marginTop: "12px", padding: "10px", background: "#f6f6f6", borderRadius: "6px" }}>
-              <strong>Output:</strong> {customResult.results?.[0]?.actual ?? "No output returned"}
+            <div style={{
+              marginTop: "12px", padding: "10px", borderRadius: "6px",
+              background: customResult.error ? "#fff3cd" : "#f6f6f6",
+              border: customResult.error ? "1px solid #ffc107" : "none",
+            }}>
+              {customResult.error
+                ? <span style={{ color: "#856404", fontSize: "13px" }}>⚠️ {customResult.error}</span>
+                : <><strong>Output:</strong> {customResult.results?.[0]?.actual ?? "No output returned"}</>
+              }
             </div>
           )}
         </div>
@@ -318,7 +450,6 @@ const CodePage = () => {
 };
 
 // ── Submissions Panel ─────────────────────────────────────────────
-
 const SubmissionsPanel = ({ submissions, expandedId, setExpandedId }) => {
   if (submissions.length === 0) {
     return (
@@ -344,9 +475,7 @@ const SubmissionsPanel = ({ submissions, expandedId, setExpandedId }) => {
               {sub.status === "Accepted" ? "✓" : "✗"} {sub.status}
             </span>
             <div style={{ display: "flex", gap: "12px", fontSize: "12px", color: "#888" }}>
-              {sub.timeComplexity && (
-                <span>📊 {sub.timeComplexity}</span>
-              )}
+              {sub.timeComplexity && <span>📊 {sub.timeComplexity}</span>}
               <span>{sub.language} &nbsp;|&nbsp; {new Date(sub.timestamp).toLocaleString()}</span>
             </div>
             <span style={{ fontSize: "12px", color: "#888" }}>
